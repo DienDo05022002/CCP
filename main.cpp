@@ -26,6 +26,10 @@ public:
 	bool Load(LPCWSTR file);
 	void Cleanup();
 	void GetFile();
+
+	bool Play();
+	bool Pause();
+	bool Stop();
 };
 
 //Bắt đầu 
@@ -69,27 +73,30 @@ bool Mp3::Load(LPCWSTR file) {
 	// Xây đò thị âm thanh và chơi nhạc. file là tham số của hàm Load nhận được truyền vào
 	hr = pigb->RenderFile(file, NULL);
 	if (SUCCEEDED(hr)) {
+		cout << "### Detail-Song ###" << endl;
+		// pims lấy thời gian tổng va thời gian hiện tại của bài hát.
 		if (pims) {
 			pims->SetTimeFormat(&TIME_FORMAT_MEDIA_TIME);
 			pims->GetDuration(&duration); // returns 10,000,000 trong một giây.
 			if (SUCCEEDED(hr)) {
 				cout << "Total time: " << duration / 10000000.0 << " second" << endl;
 			}
+			//hr = pims->GetCurrentPosition(&currentTime);
 			hr = pims->GetCurrentPosition(&currentTime);
-			if (SUCCEEDED(hr))
-			{
+			if (SUCCEEDED(hr)) {
 				cout << "Current Time: " << currentTime / 10000000.0 << " second" << endl;
+				//return currentTime;
 			}
 		}
 		// chạy nhạc
-		hr = pimc->Run();
-		if (SUCCEEDED(hr)) {
+		//hr = pimc->Run();
+		//if (SUCCEEDED(hr)) {
 			// Chờ đến kkhi hoàn thành
-			long evCode;
-			pimex->WaitForCompletion(INFINITE, &evCode);
-		}
+			//long evCode;
+			//pimex->WaitForCompletion(INFINITE, &evCode);
+		//}
 	}
-	Cleanup();
+	//Cleanup();
 	return true;
 }
 void Mp3::GetFile() {
@@ -118,7 +125,25 @@ void Mp3::GetFile() {
 	
 	FindClose(hFind);
 }
+bool Mp3::Play() {
+	if (pimc) {
+		cout << "Playing.... " << endl;
+		cout << "Press Enter to stop! " << endl;
+		HRESULT hr = pimc->Run();
+		return SUCCEEDED(hr);
+	}
+	return false;
+}
+bool Mp3::Pause() {
+	if (pimc) {
+		cout << "Pause! " << endl;
+		//HRESULT hr = pimc->Pause();
+		//return SUCCEEDED(hr);
+	}
+	return false;
+}
 
+// Điều khiển ứng dụng tù bàn phím
 class ConsoleApp{
 public:
 	void ConsoleAppMp3();
@@ -130,18 +155,26 @@ void ConsoleApp::ConsoleAppMp3() {
 	cout << "Choice 0 to exit the application! " << endl;
 	int n;
 	do {
-		cout << "Nhap n: ";
+		cout << "Choose a song: ";
 		cin >> n;
 		if (MyFileMP3.count(n)) {
 			//Dùng hàm count để tìm truy cập vào gtri trong Map bằng [n];
-			mp3.Load(MyFileMP3[n].c_str());
+			if (mp3.Load(MyFileMP3[n].c_str())) {
+				mp3.Play();
+				cin.get(); cout << "here" << endl;
+				mp3.Pause();
+			};
 		}
-		else cout << "No!" << endl;
+		else cout << "Choice does not exist! Enter again: " << endl;
 	} while (n!= 0);
 }
-int main() {
+
+//==================================================================END==================================================================
+void App() {
 	ConsoleApp App;
 	App.ConsoleAppMp3();
-	
+}
+int main() {
+	App();
 	return 0;
 }
