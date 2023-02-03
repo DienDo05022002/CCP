@@ -158,6 +158,7 @@ bool WaitForCompletion() {
 	thread task(taskThread);
 	cout << ".." << endl;
 	task.join();
+	cout << "<>" << endl;
 	return false;
 }
 
@@ -177,6 +178,10 @@ void ConsoleApp::ConsoleAppMp3() {
 		cout << "Choose a song: ";
 		cin >> n;
 		if (MyFileMP3.count(n)) {
+			//Dùng substr() để cắt ra tên bài hát từ đường dẫn
+			int start = 28; int end = MyFileMP3[n].length();
+			wstring NameSong = MyFileMP3[n].substr(start, end - start + 1);
+			wcout << "Name Song: " << NameSong << endl;
 			//Dùng hàm count để tìm truy cập vào gtri trong Map bằng [n];
 			if (mp3.Load(MyFileMP3[n].c_str())) {
 				bool flag = true;
@@ -196,7 +201,6 @@ void ConsoleApp::ConsoleAppMp3() {
 						break;
 					}
 				}
-				cout << WaitForCompletion() << endl;
  				cout << "###End Song### :))" << endl;
 				cout << "=========================================================" << endl;
 			}
