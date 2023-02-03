@@ -1,0 +1,5 @@
+##Chương trình audio-mp3.
+# Mô tả:
+- Xây dựng trên DirectShow API, Window API,...
+- Phát bài hát theo số thứ tự bài hát tương ứng
+- Phát, Tạm dừng, Thoát bài.

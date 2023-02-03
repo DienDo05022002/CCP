@@ -5,11 +5,12 @@
 #include <cstdio>
 #include <map>
 #include <conio.h>
+#include <thread>
 
 #pragma comment(lib, "strmiids.lib")
 
 using namespace std;
-int cnt = 0;
+int cnt = 0; int check = 0; //check = 1 là đang chạy, check = 2 là tạm dừng, check = 0 là thoát bài.
 map<int, wstring> MyFileMP3;
 
 class Mp3 {
@@ -31,7 +32,6 @@ public:
 	bool Play();
 	bool Pause();
 	bool Stop();
-	bool WaitForCompletion();
 };
 
 //Bắt đầu 
@@ -131,36 +131,33 @@ bool Mp3::Play() {
 	if (pimc) {
 		cout << endl << "Playing.... " << endl;
 		cout << "Press Space to pause:: ";
-		HRESULT hr = pimc->Run();
+		HRESULT hr = pimc->Run(); check = 1;
 		return SUCCEEDED(hr);
 	}
 	return false;
 }
 bool Mp3::Pause() {
 	if (pimc) {
-		cout << "Pause! Press Space to playing:: ";
-		HRESULT hr = pimc->Pause();
+		cout << endl << "Pause! Press Space to playing:: ";
+		HRESULT hr = pimc->Pause(); check = 2;
 		return SUCCEEDED(hr);
 	}
 	return false;
 }
 bool Mp3::Stop() {
 	if (pimc) {
-		HRESULT hr = pimc->Stop();
-		cout << "Stop" << endl;
-		return SUCCEEDED(hr);
+		HRESULT hr = pimc->Stop(); check = 0;
+		return SUCCEEDED(hr); 
 	}
 	return false;
 }
-bool Mp3::WaitForCompletion() {
-	if (pimex) {
-		long evCode;
-		//pimex->WaitForCompletion(INFINITE, &evCode);
-		HRESULT hr = pimex->WaitForCompletion(INFINITE, &evCode);
-		if (evCode == EC_COMPLETE) {
-			cout << "success" << endl;
-		}
-	}
+void taskThread() {
+	Mp3 mp3; mp3.Play();
+}
+bool WaitForCompletion() {
+	thread task(taskThread);
+	cout << ".." << endl;
+	task.join();
 	return false;
 }
 
@@ -168,49 +165,49 @@ bool Mp3::WaitForCompletion() {
 class ConsoleApp{
 public:
 	void ConsoleAppMp3();
-	void ConsoleAppMp3();
 };
 
 void ConsoleApp::ConsoleAppMp3() {
-	system("cls");
 	Mp3 mp3;
 	mp3.GetFile();
 	cout << "Choice 0 to exit the application! " << endl;
 	int n;
 	do {
+		cout << endl << "=========================================================" << endl;
 		cout << "Choose a song: ";
 		cin >> n;
 		if (MyFileMP3.count(n)) {
 			//Dùng hàm count để tìm truy cập vào gtri trong Map bằng [n];
 			if (mp3.Load(MyFileMP3[n].c_str())) {
 				bool flag = true;
-				char ch;
-				do {
+				char ch; cout << "Press enter to stop song. " << endl;
+				while (WaitForCompletion) {
 					mp3.Play();
-					cin.ignore();     //chỗ này có thể đang nhận vào một ký tự kết thúc dòng nên phải dùng cin.ignore()
 					ch = _getch();              // sau đó dùng getch() để bắt phím vừa nhấn
 					if (ch == 13){             // mã ASCII: 32 = space
 						flag = !flag;
 					}
 					if (flag == true) {
-						//_getch();
-						mp3.Pause(); cout << "Space:: "; _getch();
-					} else {
-						mp3.Stop();
+						mp3.Pause(); _getch();
 					}
-				} while (mp3.WaitForCompletion());
-				cout << "End Song :))" << endl;
+					else {
+						mp3.Stop();
+						cout << "Stop" << endl;
+						break;
+					}
+				}
+				cout << WaitForCompletion() << endl;
+ 				cout << "###End Song### :))" << endl;
+				cout << "=========================================================" << endl;
 			}
 		}
 		else cout << "Choice does not exist! Enter again: " << endl;
 	} while (n != 0);
 }
 //==================================================================END==================================================================
-void App() {
+
+int main() {
 	ConsoleApp App;
 	App.ConsoleAppMp3();
-}
-int main() {
-	App();
 	return 0;
 }
